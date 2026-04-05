@@ -14,9 +14,14 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+from dotenv import load_dotenv
 
 # Add project root to path so imports work
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+root = Path(__file__).parent.parent.parent
+sys.path.insert(0, str(root))
+
+# Load .env so ANTHROPIC_API_KEY etc. are available
+load_dotenv(root / ".env")
 
 # ── Page configuration (must be first Streamlit call) ─────────────────
 st.set_page_config(

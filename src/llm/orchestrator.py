@@ -22,9 +22,24 @@ import pandas as pd
 from pydantic import BaseModel
 
 from .gemma_client import GemmaClient
+from .claude_client import ClaudeClient
 from .prompts import SYSTEM_PROMPT, RAG_QUERY_TEMPLATE, REFUSAL_MESSAGE
 from .citations import CitationTracker
 from .tools import TOOL_DEFINITIONS, ToolExecutor
+
+
+def _get_default_llm():
+    """
+    Auto-select the LLM backend:
+      1. If ANTHROPIC_API_KEY is set → use Claude (fast, no local setup)
+      2. Otherwise → try Ollama/Gemma
+    """
+    import os
+    if os.getenv("ANTHROPIC_API_KEY"):
+        logger.info("Using Claude API (claude_client)")
+        return ClaudeClient()
+    logger.info("Using Ollama/Gemma (gemma_client)")
+    return GemmaClient()
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +66,7 @@ class StatCanOrchestrator:
         retriever=None,
         score_threshold: float = MIN_RETRIEVAL_SCORE,
     ):
-        self.llm = gemma_client or GemmaClient()
+        self.llm = gemma_client or _get_default_llm()
         self.tool_executor = ToolExecutor()
         self.score_threshold = score_threshold
 
